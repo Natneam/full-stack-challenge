@@ -17,10 +17,27 @@ class Challenge
      *
      * @return array
      */
-    public function getRecords() 
+    public function getRecords()
     {
-        // TODO
-        return array();
+        $sql = 'SELECT
+        businesses.id,
+        directors.first_name,
+        directors.last_name,
+        businesses.name,
+        businesses.registered_address,
+        businesses.registration_number
+    FROM
+        businesses
+    INNER JOIN
+        director_businesses ON businesses.id = director_businesses.business_id
+    INNER JOIN
+        directors ON director_businesses.director_id = directors.id
+    ORDER BY
+        businesses.id;';
+        $pdo = $this->getPdoBuilder()->getPdo();
+        $statement = $pdo->prepare($sql);
+        $statement->execute();
+        return $statement->fetchAll();
     }
 
     /**
@@ -28,10 +45,13 @@ class Challenge
      *
      * @return array
      */
-    public function getDirectorRecords() 
+    public function getDirectorRecords()
     {
-        // TODO
-        return array();
+        $sql = 'SELECT * FROM directors';
+        $pdo = $this->getPdoBuilder()->getPdo();
+        $statement = $pdo->prepare($sql);
+        $statement->execute();
+        return $statement->fetchAll();
     }
 
     /**
@@ -42,8 +62,12 @@ class Challenge
      */
     public function getSingleDirectorRecord($id)
     {
-        // TODO
-        return array();
+        $sql = 'SELECT * FROM directors WHERE id = :id';
+        $pdo = $this->getPdoBuilder()->getPdo();
+        $statement = $pdo->prepare($sql);
+        $statement->bindParam(':id', $id);
+        $statement->execute();
+        return $statement->fetch();
     }
 
     /**
@@ -51,10 +75,13 @@ class Challenge
      *
      * @return array
      */
-    public function getBusinessRecords() 
+    public function getBusinessRecords()
     {
-        // TODO
-        return array();
+        $sql = 'SELECT * FROM businesses';
+        $pdo = $this->getPdoBuilder()->getPdo();
+        $statement = $pdo->prepare($sql);
+        $statement->execute();
+        return $statement->fetchAll();
     }
 
     /**
@@ -63,10 +90,14 @@ class Challenge
      * @param int $id
      * @return array
      */
-    public function getSingleBusinessRecord($id) 
+    public function getSingleBusinessRecord($id)
     {
-        // TODO
-        return array();
+        $sql = 'SELECT * FROM businesses WHERE id = :id';
+        $pdo = $this->getPdoBuilder()->getPdo();
+        $statement = $pdo->prepare($sql);
+        $statement->bindParam(':id', $id);
+        $statement->execute();
+        return $statement->fetch();
     }
 
     /**
@@ -77,8 +108,12 @@ class Challenge
      */
     public function getBusinessesRegisteredInYear($year)
     {
-        // TODO
-        return array();
+        $sql = 'SELECT * FROM businesses WHERE YEAR(registration_date) = :year';
+        $pdo = $this->getPdoBuilder()->getPdo();
+        $statement = $pdo->prepare($sql);
+        $statement->bindParam(':year', $year);
+        $statement->execute();
+        return $statement->fetchAll();
     }
 
     /**
@@ -88,8 +123,11 @@ class Challenge
      */
     public function getLast100Records()
     {
-        // TODO
-        return array();
+        $sql = 'SELECT * FROM directors ORDER BY id DESC LIMIT 100';
+        $pdo = $this->getPdoBuilder()->getPdo();
+        $statement = $pdo->prepare($sql);
+        $statement->execute();
+        return $statement->fetchAll();
     }
 
     /**
@@ -106,8 +144,34 @@ class Challenge
      */
     public function getBusinessNameWithDirectorFullName()
     {
-        // TODO
-        return array();
+        $sql = "
+            SELECT
+                businesses.name,
+                    CONCAT(directors.first_name, ' ', directors.last_name) AS director_name
+                FROM
+                    businesses
+                INNER JOIN
+                    director_businesses ON businesses.id = director_businesses.business_id
+                INNER JOIN
+                    directors ON director_businesses.director_id = directors.id
+                ORDER BY
+                    businesses.name;
+    ";
+
+        $pdo = $this->getPdoBuilder()->getPdo();
+        $statement = $pdo->prepare($sql);
+        $statement->execute();
+        $results = $statement->fetchAll();
+
+        $businessNamesWithDirectorFullNames = [];
+        foreach ($results as $result) {
+            $businessNamesWithDirectorFullNames[] = [
+                'business_name' => $result['business_name'],
+                'director_name' => $result['director_name'],
+            ];
+        }
+
+        return $businessNamesWithDirectorFullNames;
     }
 
     /**
