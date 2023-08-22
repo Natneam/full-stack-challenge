@@ -1,22 +1,185 @@
-<table>
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Director Name</th>
-            <th>Business Name</th>
-            <th>Business Address</th>
-            <th>Business Registration #</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach($records as $record): ?>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/css/theme.blue.min.css" integrity="sha512-jJ9r3lTLaH5XXa9ZOsCQU8kLvxdAVzyTWO/pnzdZrshJQfnw1oevJFpoyCDr7K1lqt1hUgqoxA5e2PctVtlSTg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js" integrity="sha512-qzgd5cYSZcosqpzpn7zF2ZId8f/8CHmFKZ8j7mU4OUXTNRd5g+ZHBPsgKEwoqxCtdQvExE5LprwwPAgoicguNg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.widgets.min.js" integrity="sha512-dj/9K5GRIEZu+Igm9tC16XPOTz0RdPk9FGxfZxShWf65JJNU2TjbElGjuOo3EhwAJRPhJxwEJ5b+/Ouo+VqZdQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        padding-top: 20px;
+        margin: 0 20px 20px 20px;
+    }
+
+    h2 {
+        text-align: center;
+        font-size: 2rem;
+    }
+
+    h2 span {
+        font-size: 1rem;
+        color: #ccc;
+    }
+
+    .search-bar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .search-bar input {
+        width: 600px;
+        height: 40px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        padding: 5px;
+        margin-right: 10px;
+    }
+
+    .search-bar button {
+        margin: 0;
+    }
+
+    button {
+        width: 100px;
+        height: 40px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        padding: 5px;
+        cursor: pointer;
+        margin: 5px;
+    }
+
+    table th,
+    table td {
+        padding: 12px 15px !important;
+    }
+</style>
+
+<body>
+    <h2>FULLSTACK CHALLENGE <span>By Natneam</span></h2>
+    <div class="search-bar">
+        <input type="text" id="search" placeholder="Type to filter columns">
+        <button onclick=reload()>Clear Search</button>
+    </div>
+    <table id="table" class="tablesorter">
+        <thead>
             <tr>
-                <td><?= $record['id'] ?></td>
-                <td><?= $record['first_name'] . ' ' . $record['last_name'] ?></td>
-                <td><?= $record['name'] ?></td>
-                <td><?= $record['registered_address'] ?></td>
-                <td><?= $record['registration_number'] ?></td>
+                <th>Id</th>
+                <th>Director Name</th>
+                <th>Business Name</th>
+                <th>Business Address</th>
+                <th>Business Registration #</th>
             </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            <?php foreach ($records as $record) : ?>
+                <tr>
+                    <td><?= $record['id'] ?></td>
+                    <td><?= $record['first_name'] . ' ' . $record['last_name'] ?></td>
+                    <td><?= $record['name'] ?></td>
+                    <td><?= $record['registered_address'] ?></td>
+                    <td><?= $record['registration_number'] ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</body>
+
+</html>
+
+<script>
+    // reloading
+    function reload() {
+        location.reload();
+    }
+
+    // sorting
+    $(document).ready(function() {
+        $("#table").tablesorter({
+            theme: 'blue',
+            widgets: ['zebra', 'columns']
+        });
+    });
+
+    // pagination
+    function paginate() {
+        var $table = $(this);
+        var itemsPerPage = 25;
+        var currentPage = 0;
+        var pages = Math.ceil($table.find("tr:not(:has(th))").length / itemsPerPage);
+        $table.bind('repaginate', function() {
+            if (pages > 1) {
+                var pager;
+                if ($table.next().hasClass("pager"))
+                    pager = $table.next().empty();
+                else
+                    pager = $('<div class="pager" style="padding-top: 20px; direction:ltr; " align="center"></div>');
+
+                $('<button class="pg-goto"></button>').text(' « First ').bind('click', function() {
+                    currentPage = 0;
+                    $table.trigger('repaginate');
+                }).appendTo(pager);
+
+                $('<button class="pg-goto"> « Prev </button>').bind('click', function() {
+                    if (currentPage > 0)
+                        currentPage--;
+                    $table.trigger('repaginate');
+                }).appendTo(pager);
+
+                var startPager = currentPage > 2 ? currentPage - 2 : 0;
+                var endPager = startPager > 0 ? currentPage + 3 : 5;
+                if (endPager > pages) {
+                    endPager = pages;
+                    startPager = pages - 5;
+                    if (startPager < 0)
+                        startPager = 0;
+                }
+
+                for (var page = startPager; page < endPager; page++) {
+                    $('<button id="pg' + page + '" class="' + (page == currentPage ? 'pg-selected' : 'pg-normal') + '"></button>').text(page + 1).bind('click', {
+                        newPage: page
+                    }, function(event) {
+                        currentPage = event.data['newPage'];
+                        $table.trigger('repaginate');
+                    }).appendTo(pager);
+                }
+
+                $('<button class="pg-goto"> Next » </button>').bind('click', function() {
+                    if (currentPage < pages - 1)
+                        currentPage++;
+                    $table.trigger('repaginate');
+                }).appendTo(pager);
+                $('<button class="pg-goto"> Last » </button>').bind('click', function() {
+                    currentPage = pages - 1;
+                    $table.trigger('repaginate');
+                }).appendTo(pager);
+
+                if (!$table.next().hasClass("pager"))
+                    pager.insertAfter($table);
+
+            }
+
+            $table.find(
+                'tbody tr:not(:has(th))').hide().slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage).show();
+        });
+
+        $table.trigger('repaginate');
+    }
+    $('#table').each(paginate);
+
+    // search
+    var $rows = $('#table tbody tr');
+    $('#search').keyup(function() {
+        var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+
+        $rows.show().filter(function() {
+            var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+            return !~text.indexOf(val);
+        }).hide();
+    });
+</script>
